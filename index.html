@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>풀이Q</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#3B6FD9">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="풀이Q">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
+
+  :root{
+    --bg:#F5F8FC;
+    --surface:#FFFFFF;
+    --ink:#21324B;
+    --ink-soft:#5B6B85;
+    --primary:#3B6FD9;
+    --primary-dark:#2450B0;
+    --primary-soft:#E4ECFB;
+    --accent:#FF6B6B;
+    --accent-soft:#FFE9E9;
+    --success:#1FA398;
+    --success-soft:#DEF7F4;
+    --warn:#FFB627;
+    --warn-soft:#FFF4DE;
+    --border:#E1E8F2;
+    --radius-lg:24px;
+    --radius-md:16px;
+    --radius-sm:10px;
+    --shadow:0 10px 28px rgba(33,50,75,0.10);
+    --font-display:'Jua','Apple SD Gothic Neo',sans-serif;
+    --font-body:-apple-system,BlinkMacSystemFont,'Malgun Gothic','Apple SD Gothic Neo',sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);font-family:var(--font-body);color:var(--ink);}
+  body{display:flex;justify-content:center;min-height:100vh;padding:20px 12px;}
+
+  .app-frame{
+    width:100%;max-width:430px;background:var(--surface);
+    border-radius:32px;box-shadow:var(--shadow);
+    display:flex;flex-direction:column;min-height:780px;overflow:hidden;
+    position:relative;border:1px solid var(--border);
+  }
+
+  .topbar{
+    padding:18px 20px 12px;display:flex;align-items:center;justify-content:space-between;
+    flex-shrink:0;
+  }
+  .topbar .title{font-family:var(--font-display);font-size:20px;color:var(--primary-dark);}
+  .icon-btn{
+    width:36px;height:36px;border-radius:12px;border:none;background:var(--primary-soft);
+    color:var(--primary-dark);display:flex;align-items:center;justify-content:center;
+    cursor:pointer;font-size:16px;font-weight:700;
+  }
+  .icon-btn:hover{background:#d5e2f9;}
+  .progress-dots{display:flex;gap:6px;align-items:center;}
+  .progress-dots span{width:7px;height:7px;border-radius:50%;background:var(--border);}
+  .progress-dots span.active{background:var(--primary);width:18px;border-radius:5px;transition:.2s;}
+
+  .content{flex:1;overflow-y:auto;padding:4px 20px 20px;}
+  .content::-webkit-scrollbar{width:0;}
+
+  .bottomnav{
+    display:flex;border-top:1px solid var(--border);padding:10px 8px 14px;flex-shrink:0;background:var(--surface);
+  }
+  .nav-btn{
+    flex:1;border:none;background:none;display:flex;flex-direction:column;align-items:center;gap:3px;
+    color:var(--ink-soft);font-family:var(--font-body);font-size:11.5px;cursor:pointer;padding:6px 0;border-radius:12px;
+  }
+  .nav-btn .nav-ic{font-size:19px;}
+  .nav-btn.active{color:var(--primary);font-weight:700;background:var(--primary-soft);}
+
+  h1.hero{font-family:var(--font-display);font-size:26px;line-height:1.35;color:var(--ink);margin:6px 0 4px;}
+  p.sub{color:var(--ink-soft);font-size:14px;margin:0 0 18px;line-height:1.5;}
+
+  .mascot{display:block;margin:6px auto 10px;animation:float 3s ease-in-out infinite;}
+  @keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
+
+  .grade-row{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+  .chip{
+    padding:8px 14px;border-radius:999px;border:1.5px solid var(--border);background:var(--surface);
+    font-size:13px;color:var(--ink-soft);cursor:pointer;font-weight:600;
+  }
+  .chip.active{border-color:var(--primary);background:var(--primary-soft);color:var(--primary-dark);}
+
+  .subject-grid{display:flex;flex-direction:column;gap:12px;margin-bottom:22px;}
+  .subject-card{
+    display:flex;align-items:center;gap:14px;padding:18px;border-radius:var(--radius-lg);
+    border:2px solid var(--border);cursor:pointer;background:var(--surface);transition:.15s;
+  }
+  .subject-card:hover{border-color:var(--primary);}
+  .subject-card .emoji{font-size:30px;width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .subject-card.math .emoji{background:var(--primary-soft);}
+  .subject-card.english .emoji{background:var(--accent-soft);}
+  .subject-card .txt strong{display:block;font-family:var(--font-display);font-size:16px;color:var(--ink);margin-bottom:2px;}
+  .subject-card .txt span{font-size:12.5px;color:var(--ink-soft);}
+
+  .btn{
+    width:100%;padding:15px;border-radius:16px;border:none;font-family:var(--font-display);
+    font-size:16px;cursor:pointer;text-align:center;letter-spacing:.2px;
+  }
+  .btn-primary{background:var(--primary);color:#fff;box-shadow:0 8px 18px rgba(59,111,217,.28);}
+  .btn-primary:hover{background:var(--primary-dark);}
+  .btn-primary:disabled{background:#B9C7E4;cursor:not-allowed;box-shadow:none;}
+  .btn-ghost{background:var(--primary-soft);color:var(--primary-dark);}
+  .btn-outline{background:#fff;color:var(--ink-soft);border:1.5px solid var(--border);}
+  .btn-warn{background:var(--accent);color:#fff;}
+  .btn-row{display:flex;gap:10px;margin-top:10px;}
+  .btn-row .btn{flex:1;}
+
+  .dropzone{
+    display:flex;flex-direction:column;align-items:center;
+    border:2px dashed var(--primary);background:var(--primary-soft);border-radius:var(--radius-lg);
+    padding:36px 18px;text-align:center;cursor:pointer;margin-bottom:16px;
+  }
+  .dropzone .big-emoji{font-size:38px;margin-bottom:8px;}
+  .dropzone strong{display:block;font-family:var(--font-display);color:var(--primary-dark);font-size:16px;margin-bottom:4px;}
+  .dropzone span{font-size:12.5px;color:var(--ink-soft);}
+
+  .crop-stage{position:relative;width:100%;border-radius:16px;overflow:hidden;background:#111;margin-bottom:14px;touch-action:none;}
+  .crop-stage img{display:block;width:100%;height:auto;user-select:none;-webkit-user-drag:none;pointer-events:none;}
+  .crop-rect{position:absolute;border:2px solid #fff;box-shadow:0 0 0 9999px rgba(0,0,0,0.5);cursor:move;}
+  .crop-handle{position:absolute;width:22px;height:22px;background:#fff;border:2px solid var(--primary);border-radius:50%;touch-action:none;}
+  .crop-handle.nw{left:-11px;top:-11px;cursor:nwse-resize;}
+  .crop-handle.ne{right:-11px;top:-11px;cursor:nesw-resize;}
+  .crop-handle.sw{left:-11px;bottom:-11px;cursor:nesw-resize;}
+  .crop-handle.se{right:-11px;bottom:-11px;cursor:nwse-resize;}
+  .crop-hint{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);color:#fff;
+    font-size:11.5px;padding:5px 12px;border-radius:999px;pointer-events:none;text-align:center;max-width:88%;}
+
+  .preview-wrap{border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--border);margin-bottom:16px;}
+  .preview-wrap img{width:100%;display:block;max-height:280px;object-fit:contain;background:#F0F3F8;}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px;margin-bottom:12px;}
+  .card.soft{background:var(--primary-soft);border:none;}
+  .card-label{font-size:11.5px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;}
+  textarea.recog{
+    width:100%;min-height:110px;border:none;background:transparent;resize:vertical;
+    font-family:var(--font-body);font-size:14.5px;line-height:1.6;color:var(--ink);outline:none;
+  }
+
+  .concept-box{background:var(--warn-soft);border-radius:var(--radius-md);padding:14px 16px;margin-bottom:16px;display:flex;gap:10px;align-items:flex-start;}
+  .concept-box .ic{font-size:18px;}
+  .concept-box p{margin:0;font-size:13.5px;line-height:1.55;color:#7A5B00;}
+
+  .step-card{
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);
+    padding:16px;margin-bottom:12px;
+  }
+  .step-head{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+  .step-num{
+    width:26px;height:26px;border-radius:9px;background:var(--primary);color:#fff;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:13px;
+  }
+  .step-title{font-weight:700;font-size:14.5px;color:var(--ink);}
+  .step-body{font-size:14px;line-height:1.65;color:var(--ink-soft);padding-left:36px;}
+
+  .answer-box{background:var(--success-soft);border-radius:var(--radius-md);padding:14px 16px;margin:14px 0;}
+  .answer-box .lbl{font-size:11.5px;font-weight:700;color:var(--success);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;}
+  .answer-box .val{font-size:15px;font-weight:700;color:#0E7A6F;}
+
+  .problem-text{font-size:15px;line-height:1.7;color:var(--ink);white-space:pre-wrap;}
+
+  input.answer-input{
+    width:100%;padding:14px 16px;border-radius:14px;border:1.5px solid var(--border);
+    font-size:15px;font-family:var(--font-body);outline:none;margin-bottom:12px;
+  }
+  input.answer-input:focus{border-color:var(--primary);}
+
+  .feedback{border-radius:var(--radius-md);padding:16px;margin-bottom:14px;}
+  .feedback.correct{background:var(--success-soft);}
+  .feedback.wrong{background:var(--accent-soft);}
+  .feedback .ft-title{font-family:var(--font-display);font-size:16px;margin-bottom:4px;}
+  .feedback.correct .ft-title{color:#0E7A6F;}
+  .feedback.wrong .ft-title{color:#C23A3A;}
+  .feedback .ft-body{font-size:13.5px;line-height:1.55;color:var(--ink-soft);}
+
+  .mistake-item{
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);
+    padding:14px 16px;margin-bottom:10px;cursor:pointer;
+  }
+  .mistake-item .mtop{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+  .mistake-item .mtype{font-weight:700;font-size:14px;color:var(--ink);}
+  .mistake-item .mcount{font-size:11.5px;background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:999px;font-weight:700;}
+  .mistake-item .msnippet{font-size:12.5px;color:var(--ink-soft);}
+
+  .empty-state{text-align:center;padding:60px 20px;}
+  .empty-state .big-emoji{font-size:44px;margin-bottom:10px;}
+  .empty-state strong{display:block;font-family:var(--font-display);font-size:16px;color:var(--ink);margin-bottom:4px;}
+  .empty-state span{font-size:13px;color:var(--ink-soft);}
+
+  .settings-block{margin-bottom:22px;}
+  .settings-block h3{font-size:13px;font-weight:700;color:var(--ink-soft);margin:0 0 10px;text-transform:uppercase;letter-spacing:.4px;}
+  select.model-select{
+    width:100%;padding:13px 14px;border-radius:14px;border:1.5px solid var(--border);
+    font-size:14.5px;font-family:var(--font-body);color:var(--ink);background:#fff;outline:none;
+  }
+  .model-note{font-size:12px;color:var(--ink-soft);margin-top:8px;line-height:1.5;background:var(--bg);padding:10px 12px;border-radius:10px;}
+
+  .loading-overlay{
+    position:absolute;inset:0;background:rgba(255,255,255,.92);display:flex;flex-direction:column;
+    align-items:center;justify-content:center;z-index:20;border-radius:32px;padding:20px;text-align:center;
+  }
+  .spinner{width:44px;height:44px;border-radius:50%;border:4px solid var(--primary-soft);border-top-color:var(--primary);animation:spin 0.8s linear infinite;margin-bottom:14px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .loading-overlay p{font-family:var(--font-display);color:var(--primary-dark);font-size:15px;}
+
+  .error-box{background:var(--accent-soft);border-radius:var(--radius-md);padding:16px;margin-bottom:14px;}
+  .error-box strong{display:block;color:#C23A3A;font-size:14px;margin-bottom:4px;}
+  .error-box span{font-size:12.5px;color:#8a3d3d;}
+
+  .key-warning{background:var(--warn-soft);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:14px;
+    display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .key-warning span{font-size:12.5px;color:#7A5B00;line-height:1.5;}
+  .key-warning button{flex-shrink:0;background:var(--warn);color:#fff;border:none;border-radius:10px;
+    padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font-body);}
+
+  .menu-list{display:flex;flex-direction:column;gap:10px;margin-top:6px;}
+  .menu-item{
+    display:flex;align-items:center;gap:12px;padding:15px 14px;border-radius:var(--radius-md);
+    border:1.5px solid var(--border);background:var(--surface);cursor:pointer;
+  }
+  .menu-item:hover{border-color:var(--primary);}
+  .menu-ic{width:42px;height:42px;border-radius:13px;background:var(--primary-soft);flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;font-size:20px;}
+  .menu-txt{flex:1;min-width:0;}
+  .menu-txt strong{display:block;font-family:var(--font-display);font-size:14.5px;color:var(--ink);margin-bottom:2px;}
+  .menu-txt span{font-size:12px;color:var(--ink-soft);}
+  .menu-chevron{color:var(--ink-soft);font-size:20px;flex-shrink:0;}
+
+  .ref-unit{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 16px;margin-bottom:12px;}
+  .ref-unit h4{margin:0 0 10px;font-family:var(--font-display);font-size:14.5px;color:var(--primary-dark);}
+  .ref-row{padding:9px 0;border-top:1px dashed var(--border);}
+  .ref-row:first-of-type{border-top:none;padding-top:0;}
+  .ref-name{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:4px;}
+  .ref-eq{font-size:13.5px;color:var(--primary-dark);background:var(--primary-soft);display:inline-block;
+    padding:4px 10px;border-radius:8px;font-family:'Courier New',monospace;}
+  .ref-note{font-size:11.5px;color:var(--ink-soft);margin-top:4px;line-height:1.5;}
+  .ref-example{font-size:12.5px;color:var(--ink-soft);margin-top:5px;font-style:italic;}
+
+  .passage-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px;margin-bottom:14px;}
+  .passage-card h4{margin:0 0 10px;font-family:var(--font-display);font-size:15px;color:var(--ink);}
+  .passage-text{font-size:14.5px;line-height:2;color:var(--ink);}
+  .word-tap{cursor:pointer;border-radius:4px;padding:0 1px;}
+  .word-tap:hover, .word-tap:active{background:var(--primary-soft);}
+  .word-popup{background:var(--success-soft);border-radius:var(--radius-md);padding:14px 16px;margin-bottom:14px;
+    display:flex;justify-content:space-between;align-items:center;gap:10px;}
+  .word-popup .wp-txt strong{display:block;font-family:var(--font-display);color:#0E7A6F;font-size:15px;margin-bottom:2px;}
+  .word-popup .wp-txt span{font-size:13px;color:var(--ink-soft);}
+  .word-popup button{background:none;border:none;font-size:16px;color:var(--ink-soft);cursor:pointer;flex-shrink:0;}
+
+  .talk-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);
+    padding:14px 16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:10px;}
+  .talk-card .tk-txt strong{display:block;font-size:14.5px;color:var(--ink);margin-bottom:3px;}
+  .talk-card .tk-txt span{font-size:12.5px;color:var(--ink-soft);}
+  .talk-speak{flex-shrink:0;width:38px;height:38px;border-radius:50%;background:var(--primary-soft);
+    border:none;color:var(--primary-dark);font-size:16px;cursor:pointer;}
+
+  @media (prefers-reduced-motion:reduce){
+    .mascot{animation:none;} .spinner{animation:none;}
+  }
+</style>
+</head>
+<body>
+<div class="app-frame" id="appFrame">
+  <div id="root"></div>
+</div>
+
+<script>
+/* ---------------- state ---------------- */
+const state = {
+  screen: 'home',
+  subject: null,          // 'math' | 'english'
+  grade: 'mid',           // 'elem' | 'mid' | 'high'
+  difficulty: 'normal',   // 'normal' | 'easy'
+  modelPref: 'sonnet',
+  apiKey: '',
+  imageData: null,        // {base64, mediaType, previewUrl}
+  cropRect: { x: 5, y: 5, w: 90, h: 90 }, // percentage of displayed image
+  flowType: 'solve',      // 'solve' | 'reading' - what the capture/crop screens are being used for
+  readingPassage: null,   // {title, text} recognized from a photographed passage
+  wordLookupLoading: false,
+  recognized: null,       // {subject, problem_text, problem_type}
+  solution: null,         // {concept_summary, steps:[], final_answer}
+  similar: null,          // {problem, answer, hint}
+  userAnswer: '',
+  answerResult: null,     // 'correct' | 'wrong' | null
+  mistakes: [],
+  expandedMistake: null,
+  grammarTopicId: null,   // selected grammar topic for detail drill-down
+  wordPopup: null,        // {word, meaning}
+  loading: false,
+  loadingMsg: '',
+  error: null,
+};
+
+const GRADE_LABEL = { elem: '초등 고학년', mid: '중학생', high: '고등학생' };
+const SUBJECT_LABEL = { math: '수학', english: '영어' };
+const MODEL_LABEL = {
+  sonnet: 'Claude Sonnet (균형있는 설명, 기본 추천)',
+  haiku: 'Claude Haiku (빠른 응답)',
+  opus: 'Claude Opus (더 정교하고 자세한 설명)',
+};
+
+/* ---------------- static reference content (2026 교육과정 기준, 대표 단원 발췌) ---------------- */
+/* ---------------- simple original SVG diagrams for formula reference ---------------- */
+const SVG_RECT = `<svg viewBox="0 0 140 100" width="100%" height="90"><rect x="30" y="15" width="80" height="55" fill="#E4ECFB" stroke="#3B6FD9" stroke-width="2"/><line x1="30" y1="80" x2="110" y2="80" stroke="#5B6B85" stroke-width="1.5"/><text x="70" y="93" font-size="10" fill="#5B6B85" text-anchor="middle">가로</text><line x1="15" y1="15" x2="15" y2="70" stroke="#5B6B85" stroke-width="1.5"/><text x="10" y="45" font-size="10" fill="#5B6B85" text-anchor="middle" transform="rotate(-90 10,45)">세로</text></svg>`;
+const SVG_TRIANGLE = `<svg viewBox="0 0 140 100" width="100%" height="90"><polygon points="20,80 120,80 70,15" fill="#E4ECFB" stroke="#3B6FD9" stroke-width="2"/><line x1="70" y1="15" x2="70" y2="80" stroke="#FF6B6B" stroke-width="1.5" stroke-dasharray="4,3"/><text x="76" y="50" font-size="10" fill="#FF6B6B">높이</text><text x="70" y="93" font-size="10" fill="#5B6B85" text-anchor="middle">밑변</text></svg>`;
+const SVG_PARALLELOGRAM = `<svg viewBox="0 0 140 100" width="100%" height="90"><polygon points="35,80 115,80 95,15 15,15" fill="#E4ECFB" stroke="#3B6FD9" stroke-width="2"/><line x1="35" y1="80" x2="35" y2="15" stroke="#FF6B6B" stroke-width="1.5" stroke-dasharray="4,3"/><text x="8" y="50" font-size="10" fill="#FF6B6B">높이</text><text x="75" y="93" font-size="10" fill="#5B6B85" text-anchor="middle">밑변</text></svg>`;
+const SVG_CIRCLE = `<svg viewBox="0 0 140 100" width="100%" height="90"><circle cx="70" cy="50" r="35" fill="#E4ECFB" stroke="#3B6FD9" stroke-width="2"/><line x1="70" y1="50" x2="105" y2="50" stroke="#FF6B6B" stroke-width="1.5"/><text x="80" y="44" font-size="10" fill="#FF6B6B">반지름</text></svg>`;
+const SVG_PYTHAGOREAN = `<svg viewBox="0 0 140 100" width="100%" height="90"><polygon points="20,80 20,20 100,80" fill="#E4ECFB" stroke="#3B6FD9" stroke-width="2"/><text x="8" y="52" font-size="10" fill="#5B6B85">a</text><text x="55" y="93" font-size="10" fill="#5B6B85">b</text><text x="65" y="45" font-size="10" fill="#FF6B6B">c</text></svg>`;
+const SVG_LINEAR = `<svg viewBox="0 0 140 100" width="100%" height="90"><line x1="15" y1="85" x2="130" y2="85" stroke="#5B6B85" stroke-width="1"/><line x1="20" y1="90" x2="20" y2="10" stroke="#5B6B85" stroke-width="1"/><line x1="25" y1="75" x2="110" y2="20" stroke="#3B6FD9" stroke-width="2"/><line x1="45" y1="60" x2="75" y2="60" stroke="#FF6B6B" stroke-width="1.5" stroke-dasharray="3,2"/><line x1="75" y1="60" x2="75" y2="38" stroke="#FF6B6B" stroke-width="1.5" stroke-dasharray="3,2"/><text x="48" y="72" font-size="9" fill="#FF6B6B">x증가량</text><text x="80" y="50" font-size="9" fill="#FF6B6B">y증가량</text></svg>`;
+const SVG_QUADRATIC = `<svg viewBox="0 0 140 100" width="100%" height="90"><line x1="15" y1="85" x2="130" y2="85" stroke="#5B6B85" stroke-width="1"/><line x1="20" y1="90" x2="20" y2="10" stroke="#5B6B85" stroke-width="1"/><path d="M 30 80 Q 75 10 120 80" fill="none" stroke="#3B6FD9" stroke-width="2"/><circle cx="75" cy="25" r="3.5" fill="#FF6B6B"/><text x="80" y="22" font-size="9" fill="#FF6B6B">꼭짓점(p,q)</text></svg>`;
+
+const MATH_FORMULAS = {
+  elem: [
+    { unit: '분수와 소수', items: [
+      { name:'분수의 덧셈 · 뺄셈', formula:'분모가 다르면 통분 후 분자끼리 계산', },
+      { name:'분수의 곱셈', formula:'a/b × c/d = (a×c)/(b×d)' },
+      { name:'분수의 나눗셈', formula:'a/b ÷ c/d = a/b × d/c' },
+    ]},
+    { unit: '도형의 넓이와 둘레', items: [
+      { name:'직사각형 넓이', formula:'가로 × 세로', svg: SVG_RECT },
+      { name:'삼각형 넓이', formula:'밑변 × 높이 ÷ 2', svg: SVG_TRIANGLE },
+      { name:'평행사변형 넓이', formula:'밑변 × 높이', svg: SVG_PARALLELOGRAM },
+      { name:'원의 넓이', formula:'반지름 × 반지름 × 3.14', svg: SVG_CIRCLE },
+    ]},
+    { unit: '비와 비율', items: [
+      { name:'비율', formula:'비교하는 양 ÷ 기준량' },
+      { name:'백분율', formula:'비율 × 100 (%)' },
+    ]},
+  ],
+  mid: [
+    { unit: '문자와 식 · 방정식', items: [
+      { name:'일차방정식', formula:'ax + b = 0  →  x = -b/a (a≠0)' },
+      { name:'연립방정식', formula:'가감법 또는 대입법으로 미지수 소거' },
+    ]},
+    { unit: '일차함수', items: [
+      { name:'기울기', formula:'(y의 증가량) ÷ (x의 증가량)', svg: SVG_LINEAR },
+      { name:'직선의 방정식', formula:'y = ax + b (a: 기울기, b: y절편)', note:'두 직선이 평행이면 기울기가 같고 y절편은 달라요' },
+    ]},
+    { unit: '도형의 성질', items: [
+      { name:'피타고라스 정리', formula:'a² + b² = c²', note:'c는 직각삼각형의 빗변', svg: SVG_PYTHAGOREAN },
+      { name:'삼각형 내각의 합', formula:'180°' },
+      { name:'원주각', formula:'원주각 = 중심각 ÷ 2' },
+    ]},
+    { unit: '확률', items: [
+      { name:'확률', formula:'(사건이 일어나는 경우의 수) ÷ (모든 경우의 수)' },
+    ]},
+  ],
+  high: [
+    { unit: '다항식 · 인수분해', items: [
+      { name:'곱셈공식', formula:'(a+b)² = a² + 2ab + b²' },
+      { name:'곱셈공식', formula:'(a+b)(a-b) = a² - b²' },
+      { name:'인수분해', formula:'a² - b² = (a+b)(a-b)' },
+    ]},
+    { unit: '이차방정식 · 이차함수', items: [
+      { name:'근의 공식', formula:'x = (-b ± √(b²-4ac)) / 2a' },
+      { name:'판별식', formula:'D = b² - 4ac', note:'D>0: 서로 다른 두 실근, D=0: 중근, D<0: 실근 없음' },
+      { name:'이차함수 꼭짓점', formula:'y = a(x-p)² + q  →  꼭짓점 (p, q)', svg: SVG_QUADRATIC },
+    ]},
+    { unit: '지수 · 로그', items: [
+      { name:'지수법칙', formula:'aᵐ × aⁿ = aᵐ⁺ⁿ' },
+      { name:'로그의 정의', formula:'logₐN = x  ⇔  aˣ = N' },
+    ]},
+    { unit: '수열', items: [
+      { name:'등차수열 일반항', formula:'aₙ = a₁ + (n-1)d' },
+      { name:'등비수열 일반항', formula:'aₙ = a₁ × rⁿ⁻¹' },
+      { name:'등차수열의 합', formula:'Sₙ = n(a₁+aₙ) / 2' },
+    ]},
+    { unit: '미분 · 적분', items: [
+      { name:'다항함수 미분', formula:'(xⁿ)′ = n xⁿ⁻¹' },
+      { name:'미분계수의 정의', formula:"f'(x) = lim(h→0) [f(x+h)-f(x)] / h" },
+    ]},
+  ],
+};
+
+const GRAMMAR_SECTIONS = [
+  { section: '기초 문법', topics: [
+    { id:'be-general', topic:'be동사 vs 일반동사', summary:'상태를 나타내는 be동사와 동작을 나타내는 일반동사', explain:'be동사(am/is/are)는 상태나 신분을 나타내고, 일반동사는 동작을 나타내요. 의문문·부정문 만드는 방법도 서로 달라요.', example:'I am happy. / I like pizza. / Do you like pizza?' },
+    { id:'pronoun', topic:'인칭대명사와 소유격', summary:'나·너·그 등 사람을 가리키는 말과 "~의" 표현', explain:'주격(I, you, he), 소유격(my, your, his), 목적격(me, you, him)을 문장 속 역할에 맞게 구분해서 써요.', example:'This is my book. It is mine.' },
+    { id:'adj-adv', topic:'형용사와 부사', summary:'명사를 꾸미는 형용사, 동사를 꾸미는 부사', explain:'형용사는 명사를 꾸미고(a fast car), 부사는 동사·형용사·다른 부사를 꾸며요(run fast). 대부분 형용사+ly로 부사를 만들어요.', example:'She is a careful driver. She drives carefully.' },
+  ]},
+  { section: '시제', topics: [
+    { id:'present-prog', topic:'현재진행형', summary:'지금 하고 있는 동작 (be + 동사ing)', explain:'지금 이 순간 진행 중인 동작을 나타낼 때 be동사 + 동사ing 형태로 써요.', example:'She is reading a book right now.' },
+    { id:'past', topic:'과거형', summary:'이미 끝난 일 (동사 + -ed 또는 불규칙)', explain:'과거에 일어나고 끝난 일은 동사에 -ed를 붙이거나, 불규칙 동사는 따로 외운 과거형을 써요.', example:'I played soccer yesterday. / I went to school.' },
+    { id:'present-perfect', topic:'현재완료', summary:'과거에 시작된 일이 현재까지 이어질 때', explain:'과거에 일어난 일이 현재까지 영향을 주거나 계속될 때 have/has + 과거분사를 써요. 경험·계속·완료·결과를 나타내요.', example:'I have lived here for 5 years.' },
+    { id:'future', topic:'미래표현', summary:'앞으로 할 일 (will / be going to)', explain:'will은 즉흥적인 결정이나 예측, be going to는 이미 계획된 일을 말할 때 주로 써요.', example:'I will call you later. / I am going to visit my grandma.' },
+  ]},
+  { section: '문장 확장하기', topics: [
+    { id:'to-inf', topic:'to부정사 · 동명사', summary:'동사를 명사·형용사·부사처럼 쓰는 방법', explain:'to+동사원형(to부정사)이나 동사ing(동명사)로 동사를 다른 품사처럼 활용할 수 있어요.', example:'I want to study English. / I enjoy studying English.' },
+    { id:'rel-pronoun', topic:'관계대명사', summary:'두 문장을 연결하며 명사를 꾸며주는 말', explain:'who, which, that 등을 사용해 앞의 명사를 자세히 설명하는 절을 연결해요.', example:'The girl who is singing is my sister.' },
+    { id:'rel-adverb', topic:'관계부사', summary:'시간·장소·이유를 나타내는 절 연결', explain:'when(시간), where(장소), why(이유), how(방법) 등으로 절을 연결해서 앞의 명사를 꾸며줘요.', example:'This is the place where I was born.' },
+    { id:'conjunction', topic:'접속사', summary:'단어·구·절을 연결하는 말', explain:'and, but, because, although 등으로 두 문장이나 단어를 자연스럽게 연결해요.', example:'I stayed home because it was raining.' },
+  ]},
+  { section: '심화 구문', topics: [
+    { id:'passive', topic:'수동태', summary:'주어가 동작을 당할 때 (be + 과거분사)', explain:'주어가 동작을 직접 하지 않고 당할 때 be동사 + 과거분사 형태로 써요. 행위자는 by로 표현해요.', example:'The window was broken by him.' },
+    { id:'subjunctive', topic:'가정법', summary:'현실과 다른 상황을 가정할 때', explain:'가정법 과거는 If+주어+과거형, 주어+would+동사원형 형태로 현재 사실과 반대되는 상황을 가정해요.', example:'If I were you, I would go.' },
+    { id:'participle', topic:'분사구문', summary:'접속사+주어를 생략하고 분사로 시작', explain:'같은 주어를 가진 두 문장을 접속사 없이 분사(동사ing/과거분사)로 간결하게 연결해요.', example:'Walking home, I met my friend.' },
+    { id:'comparison', topic:'비교구문', summary:'as~as, 비교급, 최상급으로 비교하기', explain:'동등 비교는 as~as, 우열 비교는 비교급+than, 셋 이상 중 최고는 the+최상급을 써요.', example:'She is as tall as her brother. / This is the best day ever.' },
+  ]},
+];
+
+const CONVERSATION_SETS = [
+  [ {en:"How was your day?", ko:'오늘 하루 어땠어?'}, {en:"I'm starving, let's eat!", ko:'배고파 죽겠어, 밥 먹자!'}, {en:"Take care on your way home.", ko:'집에 조심히 가.'} ],
+  [ {en:"Can you help me with this?", ko:'이것 좀 도와줄 수 있어?'}, {en:"I'm on my way.", ko:'가는 중이야.'}, {en:"Let's catch up soon.", ko:'조만간 만나서 얘기하자.'} ],
+  [ {en:"What do you want to eat?", ko:'뭐 먹고 싶어?'}, {en:"I totally agree with you.", ko:'네 말에 완전 동의해.'}, {en:"See you tomorrow!", ko:'내일 보자!'} ],
+  [ {en:"Sorry, I'm running late.", ko:'미안, 나 좀 늦어.'}, {en:"That sounds like a great idea.", ko:'그거 좋은 생각인 것 같아.'}, {en:"Have a good one!", ko:'좋은 하루 보내!'} ],
+  [ {en:"Do you have any plans this weekend?", ko:'이번 주말에 계획 있어?'}, {en:"Let's grab a coffee.", ko:'커피 한 잔 하자.'}, {en:"I owe you one.", ko:'내가 신세졌네.'} ],
+  [ {en:"Congratulations on your test!", ko:'시험 축하해!'}, {en:"I need some fresh air.", ko:'바람 좀 쐬어야겠어.'}, {en:"Good luck tomorrow.", ko:'내일 잘 되길 바라.'} ],
+  [ {en:"Can you say that again?", ko:'다시 한번 말해줄래?'}, {en:"I feel you.", ko:'무슨 말인지 알아.'}, {en:"Let's call it a day.", ko:'오늘은 여기까지 하자.'} ],
+];
+
+
+/* ---------------- mascot ---------------- */
+function mascotSVG(size){
+  return `<svg class="mascot" width="${size}" height="${size}" viewBox="0 0 100 100" fill="none">
+    <circle cx="50" cy="55" r="34" fill="#E4ECFB"/>
+    <path d="M38 22 L62 22 L57 40 L43 40 Z" fill="#FFB627"/>
+    <rect x="43" y="14" width="14" height="10" rx="2" fill="#FF6B6B"/>
+    <circle cx="40" cy="55" r="4" fill="#21324B"/>
+    <circle cx="60" cy="55" r="4" fill="#21324B"/>
+    <path d="M40 66 Q50 74 60 66" stroke="#21324B" stroke-width="3" stroke-linecap="round" fill="none"/>
+  </svg>`;
+}
+
+/* ---------------- helpers ---------------- */
+function setState(patch){ Object.assign(state, patch); render(); }
+function esc(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function parseJSONLoose(text){
+  let cleaned = text.replace(/```json/gi,'').replace(/```/g,'').trim();
+  try{ return JSON.parse(cleaned); }catch(e){}
+  const s = cleaned.indexOf('{'), en = cleaned.lastIndexOf('}');
+  if(s>=0 && en>s){
+    try{ return JSON.parse(cleaned.slice(s, en+1)); }catch(e){}
+  }
+  throw new Error('AI 응답을 이해하지 못했어요');
+}
+
+function hasApiKey(){
+  return !!(state.apiKey && state.apiKey.trim().length > 0);
+}
+
+async function callClaude(content){
+  if(!hasApiKey()){
+    throw new Error('설정 화면에서 Anthropic API 키를 먼저 입력해주세요.');
+  }
+  let res;
+  try{
+    res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": state.apiKey.trim(),
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true",
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1200,
+        messages: [{ role: "user", content }],
+      })
+    });
+  }catch(networkErr){
+    throw new Error('네트워크 요청 자체가 실패했어요 (' + networkErr.message + '). 인터넷 연결을 확인하거나 API 키가 올바른지 확인해주세요.');
+  }
+  let data;
+  try{ data = await res.json(); }
+  catch(parseErr){ throw new Error('서버 응답을 읽지 못했어요 (status ' + res.status + ')'); }
+
+  if(!res.ok){
+    const msg = (data && data.error && data.error.message) ? data.error.message : ('요청이 실패했어요 (status ' + res.status + ')');
+    throw new Error(msg);
+  }
+  if(!data || !data.content) throw new Error('AI 응답 형식이 예상과 달라요');
+  return data.content.map(b => b.text || '').join('\n');
+}
+
+/* ---------------- AI actions ---------------- */
+async function recognizeProblem(){
+  setState({ loading: true, loadingMsg: '몽당이가 문제를 읽고 있어요...', error: null });
+  try{
+    const prompt = `당신은 학생의 학습을 돕는 친절한 AI 선생님입니다. 아래 이미지 속 문제를 읽고, 다음 JSON 형식으로만 답하세요. 마크다운 코드블록이나 다른 설명 없이 순수 JSON만 출력하세요.
+
+주의: 이미지에 문제가 여러 개 보일 수 있습니다. 그런 경우 화면(사진) 중앙에 가장 크게 위치한 문제 하나만 골라 인식하세요. 객관식 보기(①~⑤)가 있다면 보기도 빠짐없이 problem_text에 포함하세요.
+
+{
+  "subject": "math 또는 english 중 하나",
+  "problem_text": "선택한 문제 하나의 전체 내용 (수식/보기 포함, 최대한 원문 그대로)",
+  "problem_type": "이 문제의 짧은 유형 이름 (예: 일차방정식 응용, 관계대명사)",
+  "multiple_detected": "이미지에서 여러 문제를 발견해 하나만 골랐다면 true, 문제가 하나뿐이었다면 false"
+}
+이미지를 읽을 수 없거나 학습 문제가 아니라면 problem_text에 "문제를 인식하지 못했어요. 다시 촬영해주세요."라고 적어주세요.`;
+    const content = [
+      { type: "image", source: { type: "base64", media_type: state.imageData.mediaType, data: state.imageData.base64 } },
+      { type: "text", text: prompt }
+    ];
+    const raw = await callClaude(content);
+    const json = parseJSONLoose(raw);
+    setState({ loading:false, recognized: json, screen: 'confirm' });
+  }catch(e){
+    console.error('recognizeProblem error:', e);
+    setState({ loading:false, error: '문제를 인식하는 중 오류가 생겼어요. (' + e.message + ')' });
+  }
+}
+
+async function recognizeReadingPassage(){
+  setState({ loading: true, loadingMsg: '몽당이가 지문을 읽고 있어요...', error: null });
+  try{
+    const prompt = `당신은 학생의 영어 학습을 돕는 친절한 AI 선생님입니다. 아래 이미지 속 영어 지문(독해 지문)을 최대한 정확하게 그대로 옮겨 적어주세요. 줄바꿈은 자연스러운 문단으로 정리해도 괜찮아요.
+
+다음 JSON 형식으로만 답하세요. 마크다운 코드블록이나 다른 설명 없이 순수 JSON만 출력하세요.
+{
+  "title": "지문에 제목이 있다면 그 제목, 없다면 지문 내용을 한 줄로 요약한 짧은 제목",
+  "text": "지문 전체 영어 원문 (오타 없이 최대한 원문 그대로)"
+}
+이미지를 읽을 수 없거나 영어 지문이 아니라면 text에 "지문을 인식하지 못했어요. 다시 촬영해주세요."라고 적어주세요.`;
+    const content = [
+      { type: "image", source: { type: "base64", media_type: state.imageData.mediaType, data: state.imageData.base64 } },
+      { type: "text", text: prompt }
+    ];
+    const raw = await callClaude(content);
+    const json = parseJSONLoose(raw);
+    setState({ loading:false, readingPassage: json, screen: 'readingResult' });
+  }catch(e){
+    console.error('recognizeReadingPassage error:', e);
+    setState({ loading:false, error: '지문을 인식하는 중 오류가 생겼어요. (' + e.message + ')' });
+  }
+}
+
+async function lookupWordAI(word){
+  setState({ wordLookupLoading: true, wordPopup: null });
+  try{
+    const prompt = `다음은 학생이 읽고 있는 영어 지문입니다: "${state.readingPassage.text}"
+
+이 지문에 나온 단어 "${word}"의 뜻을 이 문맥에 맞게 한국어로 아주 간단하게 알려주세요 (5단어 이내, 품사도 짧게 표시).
+다음 JSON 형식으로만 답하세요: {"meaning": "간단한 한국어 뜻"}`;
+    const raw = await callClaude([{ type:"text", text: prompt }]);
+    const json = parseJSONLoose(raw);
+    setState({ wordLookupLoading:false, wordPopup: { word, meaning: json.meaning } });
+  }catch(e){
+    console.error('lookupWordAI error:', e);
+    setState({ wordLookupLoading:false, wordPopup: { word, meaning: '뜻을 가져오지 못했어요. (' + e.message + ')' } });
+  }
+}
+
+async function solveProblem(diffOverride){
+  const difficulty = diffOverride || state.difficulty;
+  setState({ loading:true, loadingMsg:'몽당이가 풀이를 준비하고 있어요...', error:null });
+  try{
+    const gradeLabel = GRADE_LABEL[state.grade];
+    const subjLabel = SUBJECT_LABEL[state.recognized.subject === 'english' ? 'english' : 'math'];
+    const prompt = `당신은 ${gradeLabel} 학생에게 ${subjLabel} 문제를 설명하는 친절한 AI 선생님입니다.
+학생 수준에 맞는 쉬운 말을 사용하고 어려운 용어는 풀어서 설명하세요.
+난이도 모드: ${difficulty === 'easy' ? '학생이 처음 설명을 이해하지 못했어요. 훨씬 더 쉽고 천천히, 예시를 들어 설명해주세요.' : '표준 난이도로 설명하세요.'}
+
+다음 문제를 3~5단계로 나누어 설명해주세요:
+"${state.recognized.problem_text}"
+
+문제에 객관식 보기(①~⑤)가 있다면, final_answer에 보기 번호와 값을 함께 적어주세요 (예: "③ -1/2").
+
+다음 JSON 형식으로만 답하세요 (마크다운 코드블록 없이 순수 JSON만):
+{
+  "concept_summary": "이 문제를 풀기 위해 필요한 핵심 개념 한두 문장 요약",
+  "steps": [ {"title":"1단계 제목", "explanation":"이 단계에서 무엇을 왜 하는지 설명"} ],
+  "final_answer": "최종 정답 (간결하게)"
+}`;
+    const raw = await callClaude([{ type:"text", text: prompt }]);
+    const json = parseJSONLoose(raw);
+    setState({ loading:false, solution: json, difficulty, screen:'solution' });
+  }catch(e){
+    console.error('solveProblem error:', e);
+    setState({ loading:false, error:'풀이를 만드는 중 오류가 생겼어요. (' + e.message + ')' });
+  }
+}
+
+async function generateSimilar(){
+  setState({ loading:true, loadingMsg:'몽당이가 비슷한 문제를 만들고 있어요...', error:null, userAnswer:'', answerResult:null });
+  try{
+    const gradeLabel = GRADE_LABEL[state.grade];
+    const subjLabel = SUBJECT_LABEL[state.recognized.subject === 'english' ? 'english' : 'math'];
+    const prompt = `당신은 친절한 AI 선생님입니다. 아래 문제와 같은 유형, 비슷한 난이도의 새로운 연습 문제를 하나 만들어주세요.
+학생 수준: ${gradeLabel}, 과목: ${subjLabel}
+
+원본 문제: "${state.recognized.problem_text}"
+문제 유형: "${state.recognized.problem_type}"
+
+다음 JSON 형식으로만 답하세요:
+{
+  "problem": "새로 만든 문제",
+  "answer": "이 문제의 정답 (간결하고 명확한 형태로, 채점에 사용됨)",
+  "hint": "막혔을 때 볼 수 있는 짧은 힌트 한 줄"
+}`;
+    const raw = await callClaude([{ type:"text", text: prompt }]);
+    const json = parseJSONLoose(raw);
+    setState({ loading:false, similar: json, screen:'similar' });
+  }catch(e){
+    console.error('generateSimilar error:', e);
+    setState({ loading:false, error:'유사 문제를 만드는 중 오류가 생겼어요. (' + e.message + ')' });
+  }
+}
+
+function normalize(s){ return (s||'').toString().trim().toLowerCase().replace(/\s+/g,''); }
+
+function checkAnswer(){
+  const ok = normalize(state.userAnswer) === normalize(state.similar.answer) && state.userAnswer.trim().length>0;
+  setState({ answerResult: ok ? 'correct' : 'wrong' });
+}
+
+function saveToMistakes(){
+  state.mistakes.push({
+    subject: state.recognized.subject,
+    problem_type: state.recognized.problem_type,
+    problem_text: state.recognized.problem_text,
+    solution: state.solution,
+    date: new Date().toLocaleDateString('ko-KR'),
+  });
+  goHome();
+}
+
+/* ---------------- navigation ---------------- */
+function goHome(){
+  setState({ screen:'home', imageData:null, recognized:null, solution:null, similar:null, userAnswer:'', answerResult:null, error:null });
+}
+
+const LEAF_TO_HUB = { mathFormulas:'mathHub', grammarRef:'englishHub', conversation:'englishHub', grammarDetail:'grammarRef' };
+const STEP_BACK = { crop:'capture', confirm:'crop', solution:'confirm', similar:'solution', readingResult:'crop' };
+
+function closeAction(){
+  const s = state.screen;
+  if(LEAF_TO_HUB[s]){
+    setState({ screen: LEAF_TO_HUB[s], wordPopup:null });
+    return;
+  }
+  if(s === 'capture'){
+    const hub = (state.flowType === 'reading') ? 'englishHub' : (state.subject === 'math' ? 'mathHub' : 'englishHub');
+    setState({ screen: hub, imageData:null, readingPassage:null, wordPopup:null, error:null });
+    return;
+  }
+  if(STEP_BACK[s]){
+    setState({ screen: STEP_BACK[s], error:null });
+    return;
+  }
+  goHome();
+}
+
+/* ---------------- speech (Web Speech API, no AI call needed) ---------------- */
+function speakText(text){
+  if(!('speechSynthesis' in window)){ alert('이 브라우저는 음성 읽기를 지원하지 않아요.'); return; }
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US';
+  u.rate = 0.92;
+  window.speechSynthesis.speak(u);
+}
+function stopSpeaking(){
+  if('speechSynthesis' in window) window.speechSynthesis.cancel();
+}
+
+/* ---------------- tappable reading text ---------------- */
+function renderTappableText(text){
+  return text.split(/(\s+)/).map(tok=>{
+    if(/^\s+$/.test(tok) || tok==='') return tok;
+    const clean = tok.replace(/[.,!?;:"'’]/g,'').toLowerCase();
+    return `<span class="word-tap" data-action="wordTap" data-value="${esc(clean)}">${esc(tok)}</span>`;
+  }).join('');
+}
+
+/* ---------------- file handling ---------------- */
+function handleFile(file){
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const result = reader.result;
+    const base64 = result.split(',')[1];
+    setState({
+      imageData: { base64, mediaType: file.type || 'image/jpeg', previewUrl: result },
+      cropRect: { x: 5, y: 5, w: 90, h: 90 },
+      screen: 'crop'
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+function rotateImage(){
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = img.naturalHeight;
+    canvas.height = img.naturalWidth;
+    const ctx = canvas.getContext('2d');
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.rotate(Math.PI / 2);
+    ctx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
+    const newUrl = canvas.toDataURL('image/jpeg', 0.92);
+    setState({
+      imageData: { ...state.imageData, mediaType: 'image/jpeg', base64: newUrl.split(',')[1], previewUrl: newUrl },
+      cropRect: { x: 5, y: 5, w: 90, h: 90 }
+    });
+  };
+  img.src = state.imageData.previewUrl;
+}
+
+function resetCropRect(){
+  setState({ cropRect: { x: 5, y: 5, w: 90, h: 90 } });
+}
+
+function confirmCrop(){
+  const img = new Image();
+  img.onload = () => {
+    const r = state.cropRect;
+    const sx = img.naturalWidth * (r.x / 100);
+    const sy = img.naturalHeight * (r.y / 100);
+    const sw = img.naturalWidth * (r.w / 100);
+    const sh = img.naturalHeight * (r.h / 100);
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(sw));
+    canvas.height = Math.max(1, Math.round(sh));
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+    const newUrl = canvas.toDataURL('image/jpeg', 0.92);
+    state.imageData = { ...state.imageData, mediaType: 'image/jpeg', base64: newUrl.split(',')[1], previewUrl: newUrl };
+    if(state.flowType === 'reading') recognizeReadingPassage();
+    else recognizeProblem();
+  };
+  img.src = state.imageData.previewUrl;
+}
+
+/* ---- crop drag handling ---- */
+let dragState = null;
+function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
+
+function updateCropRectDom(){
+  const el = document.getElementById('cropRect');
+  if(!el) return;
+  const r = state.cropRect;
+  el.style.left = r.x + '%';
+  el.style.top = r.y + '%';
+  el.style.width = r.w + '%';
+  el.style.height = r.h + '%';
+}
+
+document.addEventListener('pointerdown', (e) => {
+  const stage = document.getElementById('cropStage');
+  if(!stage) return;
+  const handleEl = e.target.closest('.crop-handle');
+  const rectEl = e.target.closest('.crop-rect');
+  if(!handleEl && !rectEl) return;
+  dragState = {
+    type: handleEl ? 'resize' : 'move',
+    handle: handleEl ? handleEl.dataset.handle : null,
+    startX: e.clientX,
+    startY: e.clientY,
+    startRect: { ...state.cropRect },
+    stageRect: stage.getBoundingClientRect(),
+  };
+  e.preventDefault();
+});
+
+document.addEventListener('pointermove', (e) => {
+  if(!dragState) return;
+  const { stageRect, startRect, type, handle } = dragState;
+  const dxPct = (e.clientX - dragState.startX) / stageRect.width * 100;
+  const dyPct = (e.clientY - dragState.startY) / stageRect.height * 100;
+  let { x, y, w, h } = startRect;
+
+  if(type === 'move'){
+    x = clamp(startRect.x + dxPct, 0, 100 - startRect.w);
+    y = clamp(startRect.y + dyPct, 0, 100 - startRect.h);
+  } else {
+    if(handle.includes('w')){
+      const nx = clamp(startRect.x + dxPct, 0, startRect.x + startRect.w - 10);
+      w = (startRect.x + startRect.w) - nx; x = nx;
+    }
+    if(handle.includes('e')){
+      w = clamp(startRect.w + dxPct, 10, 100 - startRect.x);
+    }
+    if(handle.includes('n')){
+      const ny = clamp(startRect.y + dyPct, 0, startRect.y + startRect.h - 10);
+      h = (startRect.y + startRect.h) - ny; y = ny;
+    }
+    if(handle.includes('s')){
+      h = clamp(startRect.h + dyPct, 10, 100 - startRect.y);
+    }
+  }
+  state.cropRect = { x, y, w, h };
+  updateCropRectDom();
+});
+
+document.addEventListener('pointerup', () => { dragState = null; });
+
+/* ---------------- templates ---------------- */
+function tplTopbar(){
+  const isReading = state.flowType === 'reading';
+  const titles = {
+    home:'풀이Q', capture: isReading ? '지문 촬영' : '문제 촬영', crop: isReading ? '지문 자르기' : '문제 자르기',
+    confirm:'문제 확인', solution:'풀이 보기', similar:'비슷한 문제', readingResult:'지문 확인',
+    mistakes:'오답노트', settings:'설정',
+    mathHub:'수학', englishHub:'영어', mathFormulas:'수학 공식집',
+    grammarRef:'문법 정리', grammarDetail:'문법 상세', conversation:'오늘의 회화',
+  };
+  const showBackScreens = ['capture','crop','confirm','solution','similar','readingResult','mathHub','englishHub','mathFormulas','grammarRef','grammarDetail','conversation'];
+  const showBack = showBackScreens.includes(state.screen);
+  const dotScreens = isReading ? ['capture','crop','readingResult'] : ['capture','crop','confirm','solution','similar'];
+  const dotIdx = dotScreens.indexOf(state.screen);
+  return `
+  <div class="topbar">
+    ${showBack ? `<button class="icon-btn" data-action="close">✕</button>` : `<span></span>`}
+    <span class="title">${titles[state.screen]}</span>
+    ${dotIdx>=0 ? `<div class="progress-dots">${dotScreens.map((s,i)=>`<span class="${i<=dotIdx?'active':''}"></span>`).join('')}</div>` : `<span style="width:36px"></span>`}
+  </div>`;
+}
+
+function tplBottomNav(){
+  if(!['home','mistakes','settings'].includes(state.screen)) return '';
+  const items = [
+    {id:'home', ic:'🏠', label:'홈'},
+    {id:'mistakes', ic:'📓', label:'오답노트'},
+    {id:'settings', ic:'⚙️', label:'설정'},
+  ];
+  return `<div class="bottomnav">
+    ${items.map(it=>`<button class="nav-btn ${state.screen===it.id?'active':''}" data-action="nav" data-target="${it.id}">
+      <span class="nav-ic">${it.ic}</span>${it.label}
+    </button>`).join('')}
+  </div>`;
+}
+
+function tplKeyWarning(){
+  if(hasApiKey()) return '';
+  return `<div class="key-warning">
+    <span>⚠️ 아직 API 키가 없어요. AI 기능을 쓰려면 먼저 설정에서 키를 입력해주세요.</span>
+    <button data-action="nav" data-target="settings">설정으로</button>
+  </div>`;
+}
+
+function tplHome(){
+  return `
+  ${tplKeyWarning()}
+  ${mascotSVG(64)}
+  <h1 class="hero">안녕! 오늘은<br>어떤 과목이 궁금해?</h1>
+  <p class="sub">과목을 선택하면 할 수 있는 것들을 보여줄게요.</p>
+
+  <div class="subject-grid">
+    <div class="subject-card math" data-action="openHub" data-value="math">
+      <div class="emoji">📐</div>
+      <div class="txt"><strong>수학</strong><span>문제풀이 · 공식집 · 오답노트 복습</span></div>
+    </div>
+    <div class="subject-card english" data-action="openHub" data-value="english">
+      <div class="emoji">🔤</div>
+      <div class="txt"><strong>영어</strong><span>문제풀이 · 문법 · 독해 · 회화</span></div>
+    </div>
+  </div>
+
+  ${state.mistakes.length ? `
+  <div class="card soft">
+    <div class="card-label">최근 오답노트</div>
+    <p style="margin:0;font-size:13.5px;color:var(--ink-soft);">${state.mistakes.length}개의 유형이 저장되어 있어요. 복습하러 가볼까요?</p>
+  </div>` : ''}
+  `;
+}
+
+function tplMathHub(){
+  return `
+  ${mascotSVG(52)}
+  <h1 class="hero" style="font-size:21px;">수학, 뭐 해볼까?</h1>
+  <div class="menu-list">
+    <div class="menu-item" data-action="goSubjectCapture" data-value="math">
+      <div class="menu-ic">📷</div>
+      <div class="menu-txt"><strong>수학 문제풀이</strong><span>모르는 문제를 사진으로 찍고 풀이 받기</span></div>
+      <div class="menu-chevron">›</div>
+    </div>
+    <div class="menu-item" data-action="nav" data-target="mathFormulas">
+      <div class="menu-ic">📘</div>
+      <div class="menu-txt"><strong>수학 공식집</strong><span>단원별 핵심 공식 모아보기 (26년 교육과정 기준)</span></div>
+      <div class="menu-chevron">›</div>
+    </div>
+    <div class="menu-item" data-action="nav" data-target="mistakes">
+      <div class="menu-ic">📓</div>
+      <div class="menu-txt"><strong>오답노트 기반 복습문제</strong><span>틀렸던 유형 다시 풀어보기</span></div>
+      <div class="menu-chevron">›</div>
+    </div>
+  </div>`;
+}
+
+function tplEnglishHub(){
+  return `
+  ${mascotSVG(52)}
+  <h1 class="hero" style="font-size:21px;">영어, 뭐 해볼까?</h1>
+  <div class="menu-list">
+    <div class="menu-item" data-action="goSubjectCapture" data-value="english">
+      <div class="menu-ic">📷</div>
+      <div class="menu-txt"><strong>영어 문제풀이</strong><span>모르는 문제를 사진으로 찍고 풀이 받기</span></div>
+      <div class="menu-chevron">›</div>
+    </div>
+    <div class="menu-item" data-action="nav" data-target="grammarRef">
+      <div class="menu-ic">📗</div>
+      <div class="menu-txt"><strong>문법 정리</strong><span>핵심 문법 포인트와 예문 모아보기</span></div>
+      <div class="menu-chevron">›</div>
+    </div>
+    <div class="menu-item" data-action="goReadingCapture">
+      <div class="menu-ic">📖</div>
+      <div class="menu-txt"><strong>독해 및 리딩</strong><span>지문을 사진으로 찍으면 스캔 · 단어 뜻 · 전체 듣기</span></div>
+      <div class="menu-chevron">›</div>
+    </div>
+    <div class="menu-item" data-action="nav" data-target="conversation">
+      <div class="menu-ic">💬</div>
+      <div class="menu-txt"><strong>오늘의 회화</strong><span>매일 바뀌는 짧은 표현 3개</span></div>
+      <div class="menu-chevron">›</div>
+    </div>
+  </div>`;
+}
+
+function tplMathFormulas(){
+  const grade = state.grade;
+  const units = MATH_FORMULAS[grade];
+  return `
+  <div class="key-warning" style="background:var(--primary-soft);">
+    <span style="color:var(--primary-dark);">📚 지금 보는 학년: <strong>${GRADE_LABEL[grade]}</strong></span>
+    <button style="background:var(--primary);" data-action="nav" data-target="settings">학년 변경</button>
+  </div>
+  ${units.map(u => `
+    <div class="ref-unit">
+      <h4>${esc(u.unit)}</h4>
+      ${u.items.map(it => `
+        <div class="ref-row">
+          <div class="ref-name">${esc(it.name)}</div>
+          ${it.svg ? `<div style="margin:6px 0;">${it.svg}</div>` : ''}
+          <div class="ref-eq">${esc(it.formula)}</div>
+          ${it.note ? `<div class="ref-note">${esc(it.note)}</div>` : ''}
+        </div>`).join('')}
+    </div>`).join('')}
+  <p class="sub" style="font-size:11.5px;">* 실제 시험 범위는 학교/교재마다 다를 수 있어요. 대표 공식 위주로 정리했어요.</p>
+  `;
+}
+
+function tplGrammarRef(){
+  return `
+  <p class="sub" style="margin-top:14px;">궁금한 문법을 눌러보면 자세한 설명과 예문을 볼 수 있어요.</p>
+  ${GRAMMAR_SECTIONS.map(sec => `
+    <div class="ref-unit" style="padding:12px 14px;">
+      <h4 style="margin-bottom:8px;">${esc(sec.section)}</h4>
+      <div class="menu-list" style="gap:8px;">
+        ${sec.topics.map(t => `
+          <div class="menu-item" style="padding:11px 12px;" data-action="openGrammarTopic" data-value="${esc(t.id)}">
+            <div class="menu-txt"><strong style="font-size:13.5px;">${esc(t.topic)}</strong><span>${esc(t.summary)}</span></div>
+            <div class="menu-chevron">›</div>
+          </div>`).join('')}
+      </div>
+    </div>`).join('')}
+  `;
+}
+
+function findGrammarTopic(id){
+  for(const sec of GRAMMAR_SECTIONS){
+    const found = sec.topics.find(t => t.id === id);
+    if(found) return { ...found, section: sec.section };
+  }
+  return null;
+}
+
+function tplGrammarDetail(){
+  const t = findGrammarTopic(state.grammarTopicId);
+  if(!t) return `<p class="sub">문법 항목을 찾을 수 없어요.</p>`;
+  return `
+  <div class="card soft" style="margin-top:14px;">
+    <div class="card-label">${esc(t.section)}</div>
+    <p style="margin:0;font-family:var(--font-display);font-size:18px;color:var(--ink);">${esc(t.topic)}</p>
+  </div>
+  <div class="ref-unit">
+    <h4>설명</h4>
+    <p style="margin:0;font-size:14px;line-height:1.7;color:var(--ink);">${esc(t.explain)}</p>
+  </div>
+  <div class="ref-unit">
+    <h4>예문</h4>
+    <p style="margin:0;font-size:14px;line-height:1.7;color:var(--primary-dark);">${esc(t.example)}</p>
+  </div>`;
+}
+
+function tplReadingResult(){
+  const p = state.readingPassage;
+  return `
+  <div class="preview-wrap"><img src="${state.imageData.previewUrl}" alt="촬영한 지문"></div>
+  <p class="sub" style="margin-top:0;">모르는 단어를 탭하면 AI가 뜻을 찾아줘요. 전체 듣기로 발음도 들어보세요.</p>
+  <div class="passage-card">
+    <h4>${esc(p.title)}</h4>
+    <div class="passage-text">${renderTappableText(p.text)}</div>
+  </div>
+  ${state.wordLookupLoading ? `
+    <div class="word-popup"><div class="wp-txt"><strong>찾는 중...</strong><span>몽당이가 사전을 뒤지고 있어요</span></div></div>` : ''}
+  ${state.wordPopup ? `
+    <div class="word-popup">
+      <div class="wp-txt"><strong>${esc(state.wordPopup.word)}</strong><span>${esc(state.wordPopup.meaning)}</span></div>
+      <button data-action="closeWordPopup">✕</button>
+    </div>` : ''}
+  <div class="btn-row">
+    <button class="btn btn-primary" data-action="speakReadingPassage">🔊 전체 리딩</button>
+    <button class="btn btn-outline" data-action="stopSpeak">정지</button>
+  </div>
+  <button class="btn btn-outline" style="margin-top:10px;" data-action="retakeReading">다른 지문 다시 찍기</button>`;
+}
+
+function tplConversation(){
+  const dayIndex = Math.floor(Date.now() / 86400000) % CONVERSATION_SETS.length;
+  const todaySet = CONVERSATION_SETS[dayIndex];
+  return `
+  ${mascotSVG(52)}
+  <p class="sub" style="margin-top:0;">오늘의 회화 3문장이에요. 매일 자동으로 바뀌어요.</p>
+  ${todaySet.map(c => `
+    <div class="talk-card">
+      <div class="tk-txt"><strong>${esc(c.en)}</strong><span>${esc(c.ko)}</span></div>
+      <button class="talk-speak" data-action="speakOne" data-value="${esc(c.en)}">🔊</button>
+    </div>`).join('')}
+  `;
+}
+
+function tplCapture(){
+  const isReading = state.flowType === 'reading';
+  return `
+  <p class="sub" style="margin-top:14px;">${isReading ? '읽고 싶은 영어 지문을 또렷하게 한 장 찍어주세요.' : SUBJECT_LABEL[state.subject] + ' 문제를 또렷하게 한 장 찍어주세요.'}</p>
+  <label class="dropzone">
+    <div class="big-emoji">📷</div>
+    <strong>사진 촬영 또는 업로드</strong>
+    <span>탭해서 카메라를 열거나 갤러리에서 선택하세요</span>
+    <input type="file" accept="image/*" capture="environment" id="fileInput" hidden>
+  </label>
+  <div class="card">
+    <div class="card-label">촬영 팁</div>
+    <p style="margin:0;font-size:13px;color:var(--ink-soft);line-height:1.6;">그림자 없이, ${isReading ? '지문' : '문제'} 전체가 화면 안에 들어오도록 찍으면 인식이 더 잘 돼요. 가로로 찍었거나 ${isReading ? '다른 지문이 함께' : '문제가 여러 개'} 보여도 다음 화면에서 자르고 돌릴 수 있어요.</p>
+  </div>`;
+}
+
+function tplCrop(){
+  const r = state.cropRect;
+  const isReading = state.flowType === 'reading';
+  return `
+  ${tplKeyWarning()}
+  <p class="sub" style="margin-top:14px;">${isReading ? '원하는 지문 영역을' : '원하는 문제를'} 화면 영역(사각형)에 맞게 잘라주세요. 사진이 가로로 찍혔다면 회전 버튼을 눌러주세요.</p>
+  <div class="crop-stage" id="cropStage">
+    <img src="${state.imageData.previewUrl}" alt="자를 사진">
+    <div class="crop-hint">모서리를 끌어 크기 조절 · 안쪽을 끌어 이동</div>
+    <div class="crop-rect" id="cropRect" style="left:${r.x}%;top:${r.y}%;width:${r.w}%;height:${r.h}%;">
+      <div class="crop-handle nw" data-handle="nw"></div>
+      <div class="crop-handle ne" data-handle="ne"></div>
+      <div class="crop-handle sw" data-handle="sw"></div>
+      <div class="crop-handle se" data-handle="se"></div>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-outline" data-action="rotateImage">↻ 90도 회전</button>
+    <button class="btn btn-outline" data-action="resetCropRect">전체 선택</button>
+  </div>
+  <button class="btn btn-primary" style="margin-top:10px;" data-action="confirmCrop">이 영역으로 ${isReading ? '지문' : '문제'} 인식하기</button>
+  <button class="btn btn-outline" style="margin-top:10px;" data-action="retake">다시 찍을게요</button>`;
+}
+
+function tplConfirm(){
+  const r = state.recognized;
+  const multiNotice = (r.multiple_detected === true || r.multiple_detected === 'true')
+    ? `<div class="concept-box"><span class="ic">🔍</span><p>사진에 문제가 여러 개 보여서 가장 크게 보이는 문제 하나만 골라 읽었어요. 다른 문제였다면 직접 내용을 고치거나 다시 찍어주세요.</p></div>`
+    : '';
+  return `
+  <div class="preview-wrap"><img src="${state.imageData.previewUrl}" alt="촬영한 문제"></div>
+  ${multiNotice}
+  <div class="card">
+    <div class="card-label">몽당이가 읽은 문제 · ${esc(r.problem_type||'')}</div>
+    <textarea class="recog" id="recogText">${esc(r.problem_text)}</textarea>
+  </div>
+  <p class="sub" style="margin-top:0;">내용이 맞는지 확인해주세요. 다르면 직접 고쳐도 돼요.</p>
+  <button class="btn btn-primary" data-action="confirmProblem">맞아요, 이 문제예요</button>
+  <button class="btn btn-outline" style="margin-top:10px;" data-action="retake">다르게 인식됐어요 · 다시 찍기</button>`;
+}
+
+function tplSolution(){
+  const s = state.solution;
+  return `
+  <div class="card" style="background:var(--bg);border:none;">
+    <div class="card-label">원본 문제</div>
+    <p class="problem-text" style="font-size:13.5px;color:var(--ink-soft);">${esc(state.recognized.problem_text)}</p>
+  </div>
+  <div class="concept-box"><span class="ic">💡</span><p><strong>핵심 개념</strong> · ${esc(s.concept_summary)}</p></div>
+  ${s.steps.map((st,i)=>`
+    <div class="step-card">
+      <div class="step-head"><span class="step-num">${i+1}</span><span class="step-title">${esc(st.title)}</span></div>
+      <div class="step-body">${esc(st.explanation)}</div>
+    </div>`).join('')}
+  <div class="answer-box"><div class="lbl">최종 정답</div><div class="val">${esc(s.final_answer)}</div></div>
+  <button class="btn btn-primary" data-action="goSimilar">비슷한 문제 풀어보기 →</button>
+  <button class="btn btn-ghost" style="margin-top:10px;" data-action="explainEasier">이해가 안 돼요 · 더 쉽게 설명해줘</button>`;
+}
+
+function tplSimilar(){
+  const sim = state.similar;
+  const result = state.answerResult;
+  return `
+  <div class="card soft">
+    <div class="card-label">비슷한 유형으로 한 번 더!</div>
+    <p class="problem-text">${esc(sim.problem)}</p>
+  </div>
+  <input class="answer-input" id="answerInput" placeholder="답을 입력해보세요" value="${esc(state.userAnswer)}" ${result?'disabled':''}>
+  ${!result ? `
+    <button class="btn btn-primary" data-action="submitAnswer">채점하기</button>
+    <button class="btn btn-outline" style="margin-top:10px;" data-action="showHint">힌트 보기</button>
+  ` : `
+    <div class="feedback ${result}">
+      <div class="ft-title">${result==='correct' ? '정답이에요! 🎉' : '아직 조금 아쉬워요'}</div>
+      <div class="ft-body">${result==='correct' ? '완벽하게 이해했네요. 다음 문제로 넘어가볼까요?' : `정답은 <strong>${esc(sim.answer)}</strong> 이에요. 풀이를 다시 볼까요?`}</div>
+    </div>
+    ${result==='correct' ? `
+      <button class="btn btn-primary" data-action="home">홈으로 돌아가기</button>
+    ` : `
+      <div class="btn-row">
+        <button class="btn btn-outline" data-action="backToSolution">풀이 다시 보기</button>
+        <button class="btn btn-warn" data-action="saveMistake">오답노트에 저장</button>
+      </div>
+    `}
+  `}
+  <p class="sub" style="margin-top:16px;font-size:12px;">* 프로토타입에서는 답을 간단한 문자열 비교로 채점해요. 실제 서비스에서는 AI가 더 유연하게 채점할 수 있어요.</p>`;
+}
+
+function tplMistakes(){
+  if(!state.mistakes.length){
+    return `<div class="empty-state">${mascotSVG(56)}<strong>아직 저장된 오답이 없어요</strong><span>문제를 풀다가 틀리면 여기에 자동으로 모일 거예요</span></div>`;
+  }
+  const groups = {};
+  state.mistakes.forEach((m,i)=>{
+    const key = m.problem_type || '기타';
+    groups[key] = groups[key] || [];
+    groups[key].push(i);
+  });
+  return `
+  <p class="sub" style="margin-top:14px;">유형별로 모아놨어요. 탭하면 풀이를 다시 볼 수 있어요.</p>
+  ${Object.entries(groups).map(([type, idxs])=>`
+    <div class="mistake-item" data-action="toggleMistake" data-value="${idxs[0]}">
+      <div class="mtop"><span class="mtype">${esc(type)}</span><span class="mcount">${idxs.length}회</span></div>
+      <div class="msnippet">${esc((state.mistakes[idxs[0]].problem_text||'').slice(0,40))}...</div>
+      ${state.expandedMistake===idxs[0] ? `
+        <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px;">
+          <div class="concept-box"><span class="ic">💡</span><p>${esc(state.mistakes[idxs[0]].solution.concept_summary)}</p></div>
+          ${state.mistakes[idxs[0]].solution.steps.map((st,i)=>`
+            <div class="step-card" style="margin-bottom:8px;">
+              <div class="step-head"><span class="step-num">${i+1}</span><span class="step-title">${esc(st.title)}</span></div>
+              <div class="step-body">${esc(st.explanation)}</div>
+            </div>`).join('')}
+        </div>` : ''}
+    </div>`).join('')}
+  `;
+}
+
+function tplSettings(){
+  return `
+  <div class="settings-block">
+    <h3>Anthropic API 키 ${hasApiKey() ? '✅' : '⚠️ 필수'}</h3>
+    <input type="password" class="model-select" id="apiKeyInput" placeholder="sk-ant-..." value="${esc(state.apiKey)}" style="margin-bottom:0;">
+    <div class="model-note">
+      이 프로토타입은 별도 서버 없이 브라우저에서 Anthropic API를 직접 호출해요. 그래서 각자의 API 키가 필요해요.
+      <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--primary);">console.anthropic.com</a>에서 발급받아 붙여넣어주세요.
+      입력한 키는 이 브라우저 탭에만 잠시 저장되고, Anthropic 서버로만 직접 전송돼요. 새로고침하면 다시 입력해야 해요.
+    </div>
+  </div>
+  <div class="settings-block">
+    <h3>학년</h3>
+    <div class="grade-row">
+      ${Object.entries(GRADE_LABEL).map(([k,v])=>`<button class="chip ${state.grade===k?'active':''}" data-action="setGrade" data-value="${k}">${v}</button>`).join('')}
+    </div>
+  </div>
+  <div class="settings-block">
+    <h3>설명 난이도 기본값</h3>
+    <div class="grade-row">
+      <button class="chip ${state.difficulty==='normal'?'active':''}" data-action="setDifficulty" data-value="normal">표준 설명</button>
+      <button class="chip ${state.difficulty==='easy'?'active':''}" data-action="setDifficulty" data-value="easy">쉬운 설명</button>
+    </div>
+  </div>
+  <div class="settings-block">
+    <h3>AI 모델 선택</h3>
+    <select class="model-select" id="modelSelect">
+      ${Object.entries(MODEL_LABEL).map(([k,v])=>`<option value="${k}" ${state.modelPref===k?'selected':''}>${v}</option>`).join('')}
+    </select>
+    <div class="model-note">현재 프로토타입은 Claude 모델로 동작해요. 실제 서비스에서는 여기서 고른 모델로 풀이 요청이 연결될 예정이에요.</div>
+  </div>
+  <div class="settings-block">
+    <h3>데이터</h3>
+    <button class="btn btn-outline" data-action="resetAll">오답노트 초기화</button>
+  </div>
+  `;
+}
+
+function tplError(){
+  if(!state.error) return '';
+  return `<div class="error-box"><strong>앗, 문제가 생겼어요</strong><span>${esc(state.error)}</span></div>`;
+}
+
+function tplLoading(){
+  if(!state.loading) return '';
+  return `<div class="loading-overlay">${mascotSVG(70)}<div class="spinner"></div><p>${esc(state.loadingMsg)}</p></div>`;
+}
+
+/* ---------------- render ---------------- */
+function render(){
+  const screens = {
+    home: tplHome, capture: tplCapture, crop: tplCrop, confirm: tplConfirm, solution: tplSolution,
+    similar: tplSimilar, mistakes: tplMistakes, settings: tplSettings,
+    mathHub: tplMathHub, englishHub: tplEnglishHub, mathFormulas: tplMathFormulas,
+    grammarRef: tplGrammarRef, grammarDetail: tplGrammarDetail, readingResult: tplReadingResult, conversation: tplConversation,
+  };
+  document.getElementById('root').innerHTML = `
+    ${tplTopbar()}
+    <div class="content">${tplError()}${screens[state.screen]()}</div>
+    ${tplBottomNav()}
+    ${tplLoading()}
+  `;
+}
+
+/* ---------------- events (delegated) ---------------- */
+document.addEventListener('click', (e) => {
+  const t = e.target.closest('[data-action]');
+  if(!t) return;
+  const action = t.dataset.action;
+  const value = t.dataset.value;
+
+  if(action==='nav') setState({ screen: t.dataset.target, wordPopup:null });
+  else if(action==='setGrade') setState({ grade: value });
+  else if(action==='setDifficulty') setState({ difficulty: value });
+  else if(action==='openHub'){ setState({ subject: value, screen: value==='math' ? 'mathHub' : 'englishHub' }); }
+  else if(action==='goSubjectCapture'){ setState({ subject: value, flowType:'solve', imageData:null, cropRect:{x:5,y:5,w:90,h:90}, screen:'capture', error:null }); }
+  else if(action==='goReadingCapture'){ setState({ subject:'english', flowType:'reading', imageData:null, readingPassage:null, wordPopup:null, cropRect:{x:5,y:5,w:90,h:90}, screen:'capture', error:null }); }
+  else if(action==='openGrammarTopic') setState({ screen:'grammarDetail', grammarTopicId: value });
+  else if(action==='wordTap') lookupWordAI(value);
+  else if(action==='closeWordPopup') setState({ wordPopup: null });
+  else if(action==='speakReadingPassage') speakText(state.readingPassage.text);
+  else if(action==='retakeReading') setState({ imageData:null, readingPassage:null, wordPopup:null, cropRect:{x:5,y:5,w:90,h:90}, screen:'capture', error:null });
+  else if(action==='speakOne') speakText(value);
+  else if(action==='stopSpeak') stopSpeaking();
+  else if(action==='close') closeAction();
+  else if(action==='home') goHome();
+  else if(action==='retake') setState({ imageData: null, cropRect:{x:5,y:5,w:90,h:90}, screen: 'capture', error:null });
+  else if(action==='rotateImage') rotateImage();
+  else if(action==='resetCropRect') resetCropRect();
+  else if(action==='confirmCrop') confirmCrop();
+  else if(action==='confirmProblem'){
+    const ta = document.getElementById('recogText');
+    state.recognized.problem_text = ta ? ta.value : state.recognized.problem_text;
+    solveProblem('normal');
+  }
+  else if(action==='goSimilar') generateSimilar();
+  else if(action==='explainEasier') solveProblem('easy');
+  else if(action==='submitAnswer'){
+    const inp = document.getElementById('answerInput');
+    state.userAnswer = inp ? inp.value : '';
+    checkAnswer();
+  }
+  else if(action==='showHint') alert('힌트: ' + (state.similar.hint || '천천히 원본 풀이를 다시 떠올려보세요.'));
+  else if(action==='backToSolution') setState({ screen:'solution', answerResult:null });
+  else if(action==='saveMistake') saveToMistakes();
+  else if(action==='toggleMistake'){
+    const idx = Number(value);
+    setState({ expandedMistake: state.expandedMistake===idx ? null : idx });
+  }
+  else if(action==='resetAll') setState({ mistakes: [], expandedMistake:null });
+});
+
+document.addEventListener('change', (e) => {
+  if(e.target.id === 'fileInput'){
+    handleFile(e.target.files[0]);
+  }
+  if(e.target.id === 'modelSelect'){
+    setState({ modelPref: e.target.value });
+  }
+  if(e.target.id === 'apiKeyInput'){
+    setState({ apiKey: e.target.value });
+  }
+});
+
+/* ---------------- init ---------------- */
+render();
+
+/* ---------------- PWA: register service worker ---------------- */
+if('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js').catch(err => {
+      console.warn('Service worker registration failed:', err);
+    });
+  });
+}
+
+</script>
+</body>
+</html>
