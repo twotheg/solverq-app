@@ -280,6 +280,7 @@ const state = {
   difficulty: 'normal',   // 'normal' | 'easy'
   modelPref: 'sonnet',
   apiKey: '',
+  proxyUrl: '',
   imageData: null,        // {base64, mediaType, previewUrl}
   cropRect: { x: 5, y: 5, w: 90, h: 90 }, // percentage of displayed image
   flowType: 'solve',      // 'solve' | 'reading' - what the capture/crop screens are being used for
@@ -446,21 +447,35 @@ function parseJSONLoose(text){
 function hasApiKey(){
   return !!(state.apiKey && state.apiKey.trim().length > 0);
 }
+function hasProxy(){
+  return !!(state.proxyUrl && state.proxyUrl.trim().length > 0);
+}
+function hasAiAccess(){
+  return hasProxy() || hasApiKey();
+}
 
 async function callClaude(content){
-  if(!hasApiKey()){
-    throw new Error('설정 화면에서 Anthropic API 키를 먼저 입력해주세요.');
+  if(!hasAiAccess()){
+    throw new Error('설정 화면에서 서버 주소 또는 Anthropic API 키를 먼저 입력해주세요.');
   }
-  let res;
-  try{
-    res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
+
+  // 우선순위: 백엔드 서버(proxyUrl)가 설정되어 있으면 그쪽을 먼저 써요 (API 키가 서버에만 있어서 더 안전해요).
+  const useProxy = hasProxy();
+  const endpoint = useProxy ? state.proxyUrl.trim() : "https://api.anthropic.com/v1/messages";
+  const headers = useProxy
+    ? { "Content-Type": "application/json" }
+    : {
         "Content-Type": "application/json",
         "x-api-key": state.apiKey.trim(),
         "anthropic-version": "2023-06-01",
         "anthropic-dangerous-direct-browser-access": "true",
-      },
+      };
+
+  let res;
+  try{
+    res = await fetch(endpoint, {
+      method: "POST",
+      headers,
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
         max_tokens: 1200,
@@ -468,7 +483,8 @@ async function callClaude(content){
       })
     });
   }catch(networkErr){
-    throw new Error('네트워크 요청 자체가 실패했어요 (' + networkErr.message + '). 인터넷 연결을 확인하거나 API 키가 올바른지 확인해주세요.');
+    const hint = useProxy ? '서버 주소가 올바른지 확인해주세요.' : '인터넷 연결을 확인하거나 API 키가 올바른지 확인해주세요.';
+    throw new Error('네트워크 요청 자체가 실패했어요 (' + networkErr.message + '). ' + hint);
   }
   let data;
   try{ data = await res.json(); }
@@ -832,9 +848,9 @@ function tplBottomNav(){
 }
 
 function tplKeyWarning(){
-  if(hasApiKey()) return '';
+  if(hasAiAccess()) return '';
   return `<div class="key-warning">
-    <span>⚠️ 아직 API 키가 없어요. AI 기능을 쓰려면 먼저 설정에서 키를 입력해주세요.</span>
+    <span>⚠️ 아직 AI 연결이 안 되어 있어요. 설정에서 서버 주소나 API 키를 입력해주세요.</span>
     <button data-action="nav" data-target="settings">설정으로</button>
   </div>`;
 }
@@ -1027,7 +1043,7 @@ function tplCapture(){
     <div class="big-emoji">📷</div>
     <strong>사진 촬영 또는 업로드</strong>
     <span>탭해서 카메라를 열거나 갤러리에서 선택하세요</span>
-    <input type="file" accept="image/*" capture="environment" id="fileInput" hidden>
+    <input type="file" accept="image/*" id="fileInput" hidden>
   </label>
   <div class="card">
     <div class="card-label">촬영 팁</div>
@@ -1155,10 +1171,17 @@ function tplMistakes(){
 function tplSettings(){
   return `
   <div class="settings-block">
-    <h3>Anthropic API 키 ${hasApiKey() ? '✅' : '⚠️ 필수'}</h3>
+    <h3>백엔드 서버 주소 (권장) ${hasProxy() ? '✅' : ''}</h3>
+    <input type="text" class="model-select" id="proxyUrlInput" placeholder="https://your-worker.your-name.workers.dev" value="${esc(state.proxyUrl)}" style="margin-bottom:0;">
+    <div class="model-note">
+      직접 만든 서버(예: Cloudflare Worker) 주소를 입력하면, API 키를 서버에만 안전하게 보관하고 이 앱은 그 서버로만 요청을 보내요. 이 칸이 채워져 있으면 아래 API 키는 사용되지 않아요.
+    </div>
+  </div>
+  <div class="settings-block">
+    <h3>Anthropic API 키 (서버 없이 테스트용) ${hasApiKey() ? '✅' : ''}</h3>
     <input type="password" class="model-select" id="apiKeyInput" placeholder="sk-ant-..." value="${esc(state.apiKey)}" style="margin-bottom:0;">
     <div class="model-note">
-      이 프로토타입은 별도 서버 없이 브라우저에서 Anthropic API를 직접 호출해요. 그래서 각자의 API 키가 필요해요.
+      백엔드 서버 주소를 아직 안 만들었다면, 임시로 이 키를 브라우저에서 직접 사용할 수 있어요.
       <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--primary);">console.anthropic.com</a>에서 발급받아 붙여넣어주세요.
       입력한 키는 이 브라우저 탭에만 잠시 저장되고, Anthropic 서버로만 직접 전송돼요. 새로고침하면 다시 입력해야 해요.
     </div>
@@ -1274,6 +1297,9 @@ document.addEventListener('change', (e) => {
   if(e.target.id === 'apiKeyInput'){
     setState({ apiKey: e.target.value });
   }
+  if(e.target.id === 'proxyUrlInput'){
+    setState({ proxyUrl: e.target.value });
+  }
 });
 
 /* ---------------- init ---------------- */
@@ -1287,7 +1313,6 @@ if('serviceWorker' in navigator && (location.protocol === 'https:' || location.h
     });
   });
 }
-
 </script>
 </body>
 </html>
