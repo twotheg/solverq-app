@@ -278,7 +278,7 @@ const state = {
   subject: null,          // 'math' | 'english'
   grade: 'mid',           // 'elem' | 'mid' | 'high'
   difficulty: 'normal',   // 'normal' | 'easy'
-  modelPref: 'sonnet',
+  modelPref: 'flash',
   apiKey: '',
   proxyUrl: '',
   imageData: null,        // {base64, mediaType, previewUrl}
@@ -303,9 +303,8 @@ const state = {
 const GRADE_LABEL = { elem: '초등 고학년', mid: '중학생', high: '고등학생' };
 const SUBJECT_LABEL = { math: '수학', english: '영어' };
 const MODEL_LABEL = {
-  sonnet: 'Claude Sonnet (균형있는 설명, 기본 추천)',
-  haiku: 'Claude Haiku (빠른 응답)',
-  opus: 'Claude Opus (더 정교하고 자세한 설명)',
+  flash: 'Gemini Flash (빠르고 무료 티어, 기본 추천)',
+  pro: 'Gemini Pro (더 정교하고 자세한 설명)',
 };
 
 /* ---------------- static reference content (2026 교육과정 기준, 대표 단원 발췌) ---------------- */
@@ -454,33 +453,40 @@ function hasAiAccess(){
   return hasProxy() || hasApiKey();
 }
 
-async function callClaude(content){
+const GEMINI_MODEL = 'gemini-2.5-flash';
+
+// Converts our existing Anthropic-style content blocks ([{type:'image',source:{...}}, {type:'text',text:'...'}])
+// into Gemini's "parts" format, so none of the call sites below had to change.
+function toGeminiParts(content){
+  return content.map(block => {
+    if(block.type === 'image'){
+      return { inline_data: { mime_type: block.source.media_type, data: block.source.data } };
+    }
+    return { text: block.text };
+  });
+}
+
+async function callAI(content){
   if(!hasAiAccess()){
-    throw new Error('설정 화면에서 서버 주소 또는 Anthropic API 키를 먼저 입력해주세요.');
+    throw new Error('설정 화면에서 서버 주소 또는 Gemini API 키를 먼저 입력해주세요.');
   }
 
   // 우선순위: 백엔드 서버(proxyUrl)가 설정되어 있으면 그쪽을 먼저 써요 (API 키가 서버에만 있어서 더 안전해요).
   const useProxy = hasProxy();
-  const endpoint = useProxy ? state.proxyUrl.trim() : "https://api.anthropic.com/v1/messages";
+  const payload = { contents: [{ role: 'user', parts: toGeminiParts(content) }] };
+  const endpoint = useProxy
+    ? state.proxyUrl.trim()
+    : `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
   const headers = useProxy
     ? { "Content-Type": "application/json" }
-    : {
-        "Content-Type": "application/json",
-        "x-api-key": state.apiKey.trim(),
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true",
-      };
+    : { "Content-Type": "application/json", "x-goog-api-key": state.apiKey.trim() };
 
   let res;
   try{
     res = await fetch(endpoint, {
       method: "POST",
       headers,
-      body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 1200,
-        messages: [{ role: "user", content }],
-      })
+      body: JSON.stringify(payload),
     });
   }catch(networkErr){
     const hint = useProxy ? '서버 주소가 올바른지 확인해주세요.' : '인터넷 연결을 확인하거나 API 키가 올바른지 확인해주세요.';
@@ -494,8 +500,12 @@ async function callClaude(content){
     const msg = (data && data.error && data.error.message) ? data.error.message : ('요청이 실패했어요 (status ' + res.status + ')');
     throw new Error(msg);
   }
-  if(!data || !data.content) throw new Error('AI 응답 형식이 예상과 달라요');
-  return data.content.map(b => b.text || '').join('\n');
+  const candidate = data && data.candidates && data.candidates[0];
+  const text = candidate && candidate.content && candidate.content.parts
+    ? candidate.content.parts.map(p => p.text || '').join('\n')
+    : '';
+  if(!text) throw new Error('AI 응답 형식이 예상과 달라요 (혹시 안전 필터에 걸렸을 수도 있어요)');
+  return text;
 }
 
 /* ---------------- AI actions ---------------- */
@@ -517,7 +527,7 @@ async function recognizeProblem(){
       { type: "image", source: { type: "base64", media_type: state.imageData.mediaType, data: state.imageData.base64 } },
       { type: "text", text: prompt }
     ];
-    const raw = await callClaude(content);
+    const raw = await callAI(content);
     const json = parseJSONLoose(raw);
     setState({ loading:false, recognized: json, screen: 'confirm' });
   }catch(e){
@@ -541,7 +551,7 @@ async function recognizeReadingPassage(){
       { type: "image", source: { type: "base64", media_type: state.imageData.mediaType, data: state.imageData.base64 } },
       { type: "text", text: prompt }
     ];
-    const raw = await callClaude(content);
+    const raw = await callAI(content);
     const json = parseJSONLoose(raw);
     setState({ loading:false, readingPassage: json, screen: 'readingResult' });
   }catch(e){
@@ -557,7 +567,7 @@ async function lookupWordAI(word){
 
 이 지문에 나온 단어 "${word}"의 뜻을 이 문맥에 맞게 한국어로 아주 간단하게 알려주세요 (5단어 이내, 품사도 짧게 표시).
 다음 JSON 형식으로만 답하세요: {"meaning": "간단한 한국어 뜻"}`;
-    const raw = await callClaude([{ type:"text", text: prompt }]);
+    const raw = await callAI([{ type:"text", text: prompt }]);
     const json = parseJSONLoose(raw);
     setState({ wordLookupLoading:false, wordPopup: { word, meaning: json.meaning } });
   }catch(e){
@@ -587,7 +597,7 @@ async function solveProblem(diffOverride){
   "steps": [ {"title":"1단계 제목", "explanation":"이 단계에서 무엇을 왜 하는지 설명"} ],
   "final_answer": "최종 정답 (간결하게)"
 }`;
-    const raw = await callClaude([{ type:"text", text: prompt }]);
+    const raw = await callAI([{ type:"text", text: prompt }]);
     const json = parseJSONLoose(raw);
     setState({ loading:false, solution: json, difficulty, screen:'solution' });
   }catch(e){
@@ -613,7 +623,7 @@ async function generateSimilar(){
   "answer": "이 문제의 정답 (간결하고 명확한 형태로, 채점에 사용됨)",
   "hint": "막혔을 때 볼 수 있는 짧은 힌트 한 줄"
 }`;
-    const raw = await callClaude([{ type:"text", text: prompt }]);
+    const raw = await callAI([{ type:"text", text: prompt }]);
     const json = parseJSONLoose(raw);
     setState({ loading:false, similar: json, screen:'similar' });
   }catch(e){
@@ -1178,12 +1188,12 @@ function tplSettings(){
     </div>
   </div>
   <div class="settings-block">
-    <h3>Anthropic API 키 (서버 없이 테스트용) ${hasApiKey() ? '✅' : ''}</h3>
-    <input type="password" class="model-select" id="apiKeyInput" placeholder="sk-ant-..." value="${esc(state.apiKey)}" style="margin-bottom:0;">
+    <h3>Gemini API 키 (서버 없이 테스트용) ${hasApiKey() ? '✅' : ''}</h3>
+    <input type="password" class="model-select" id="apiKeyInput" placeholder="AIza..." value="${esc(state.apiKey)}" style="margin-bottom:0;">
     <div class="model-note">
       백엔드 서버 주소를 아직 안 만들었다면, 임시로 이 키를 브라우저에서 직접 사용할 수 있어요.
-      <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--primary);">console.anthropic.com</a>에서 발급받아 붙여넣어주세요.
-      입력한 키는 이 브라우저 탭에만 잠시 저장되고, Anthropic 서버로만 직접 전송돼요. 새로고침하면 다시 입력해야 해요.
+      <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--primary);">aistudio.google.com/apikey</a>에서 구글 계정으로 로그인해 무료로 발급받아 붙여넣어주세요 (신용카드 필요 없어요).
+      입력한 키는 이 브라우저 탭에만 잠시 저장되고, Google 서버로만 직접 전송돼요. 새로고침하면 다시 입력해야 해요.
     </div>
   </div>
   <div class="settings-block">
@@ -1204,7 +1214,7 @@ function tplSettings(){
     <select class="model-select" id="modelSelect">
       ${Object.entries(MODEL_LABEL).map(([k,v])=>`<option value="${k}" ${state.modelPref===k?'selected':''}>${v}</option>`).join('')}
     </select>
-    <div class="model-note">현재 프로토타입은 Claude 모델로 동작해요. 실제 서비스에서는 여기서 고른 모델로 풀이 요청이 연결될 예정이에요.</div>
+    <div class="model-note">현재 프로토타입은 Gemini Flash 모델로 동작해요. 실제 서비스에서는 여기서 고른 모델로 풀이 요청이 연결될 예정이에요.</div>
   </div>
   <div class="settings-block">
     <h3>데이터</h3>
