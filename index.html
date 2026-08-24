@@ -485,7 +485,7 @@ function hasAiAccess(){
   return hasProxy() || hasApiKey();
 }
 
-const GEMINI_MODEL = 'gemini-2.5-flash';
+const GEMINI_MODEL = 'gemini-3.6-flash';
 
 // Converts our existing Anthropic-style content blocks ([{type:'image',source:{...}}, {type:'text',text:'...'}])
 // into Gemini's "parts" format, so none of the call sites below had to change.
