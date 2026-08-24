@@ -122,6 +122,12 @@
   .dropzone strong{display:block;font-family:var(--font-display);color:var(--primary-dark);font-size:16px;margin-bottom:4px;}
   .dropzone span{font-size:12.5px;color:var(--ink-soft);}
 
+  .dropzone-row{display:flex;gap:10px;margin-bottom:16px;}
+  .dropzone-half{flex:1;padding:22px 10px;margin-bottom:0;}
+  .dropzone-half .big-emoji{font-size:28px;margin-bottom:6px;}
+  .dropzone-half strong{font-size:13.5px;}
+  .dropzone-half span{font-size:11px;}
+
   .crop-stage{position:relative;width:100%;border-radius:16px;overflow:hidden;background:#111;margin-bottom:14px;touch-action:none;}
   .crop-stage img{display:block;width:100%;height:auto;user-select:none;-webkit-user-drag:none;pointer-events:none;}
   .crop-rect{position:absolute;border:2px solid #fff;box-shadow:0 0 0 9999px rgba(0,0,0,0.5);cursor:move;}
@@ -433,6 +439,32 @@ function mascotSVG(size){
 function setState(patch){ Object.assign(state, patch); render(); }
 function esc(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
+/* ---------------- persist settings across app launches (localStorage) ---------------- */
+const LS_KEY = 'pooliq_settings_v1';
+function loadSavedSettings(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(!raw) return;
+    const saved = JSON.parse(raw);
+    if(typeof saved.apiKey === 'string') state.apiKey = saved.apiKey;
+    if(typeof saved.proxyUrl === 'string') state.proxyUrl = saved.proxyUrl;
+    if(typeof saved.grade === 'string') state.grade = saved.grade;
+    if(typeof saved.difficulty === 'string') state.difficulty = saved.difficulty;
+    if(typeof saved.modelPref === 'string') state.modelPref = saved.modelPref;
+  }catch(e){ console.warn('저장된 설정을 불러오지 못했어요:', e); }
+}
+function saveSettings(){
+  try{
+    localStorage.setItem(LS_KEY, JSON.stringify({
+      apiKey: state.apiKey,
+      proxyUrl: state.proxyUrl,
+      grade: state.grade,
+      difficulty: state.difficulty,
+      modelPref: state.modelPref,
+    }));
+  }catch(e){ console.warn('설정을 저장하지 못했어요:', e); }
+}
+
 function parseJSONLoose(text){
   let cleaned = text.replace(/```json/gi,'').replace(/```/g,'').trim();
   try{ return JSON.parse(cleaned); }catch(e){}
@@ -460,7 +492,7 @@ const GEMINI_MODEL = 'gemini-2.5-flash';
 function toGeminiParts(content){
   return content.map(block => {
     if(block.type === 'image'){
-      return { inline_data: { mime_type: block.source.media_type, data: block.source.data } };
+      return { inlineData: { mimeType: block.source.media_type, data: block.source.data } };
     }
     return { text: block.text };
   });
@@ -1049,12 +1081,20 @@ function tplCapture(){
   const isReading = state.flowType === 'reading';
   return `
   <p class="sub" style="margin-top:14px;">${isReading ? '읽고 싶은 영어 지문을 또렷하게 한 장 찍어주세요.' : SUBJECT_LABEL[state.subject] + ' 문제를 또렷하게 한 장 찍어주세요.'}</p>
-  <label class="dropzone">
-    <div class="big-emoji">📷</div>
-    <strong>사진 촬영 또는 업로드</strong>
-    <span>탭해서 카메라를 열거나 갤러리에서 선택하세요</span>
-    <input type="file" accept="image/*" id="fileInput" hidden>
-  </label>
+  <div class="dropzone-row">
+    <label class="dropzone dropzone-half">
+      <div class="big-emoji">📷</div>
+      <strong>사진 촬영</strong>
+      <span>카메라 열기</span>
+      <input type="file" accept="image/*" capture="environment" id="cameraInput" hidden>
+    </label>
+    <label class="dropzone dropzone-half">
+      <div class="big-emoji">🖼️</div>
+      <strong>갤러리에서 선택</strong>
+      <span>저장된 사진 불러오기</span>
+      <input type="file" accept="image/*" id="galleryInput" hidden>
+    </label>
+  </div>
   <div class="card">
     <div class="card-label">촬영 팁</div>
     <p style="margin:0;font-size:13px;color:var(--ink-soft);line-height:1.6;">그림자 없이, ${isReading ? '지문' : '문제'} 전체가 화면 안에 들어오도록 찍으면 인식이 더 잘 돼요. 가로로 찍었거나 ${isReading ? '다른 지문이 함께' : '문제가 여러 개'} 보여도 다음 화면에서 자르고 돌릴 수 있어요.</p>
@@ -1257,8 +1297,8 @@ document.addEventListener('click', (e) => {
   const value = t.dataset.value;
 
   if(action==='nav') setState({ screen: t.dataset.target, wordPopup:null });
-  else if(action==='setGrade') setState({ grade: value });
-  else if(action==='setDifficulty') setState({ difficulty: value });
+  else if(action==='setGrade'){ setState({ grade: value }); saveSettings(); }
+  else if(action==='setDifficulty'){ setState({ difficulty: value }); saveSettings(); }
   else if(action==='openHub'){ setState({ subject: value, screen: value==='math' ? 'mathHub' : 'englishHub' }); }
   else if(action==='goSubjectCapture'){ setState({ subject: value, flowType:'solve', imageData:null, cropRect:{x:5,y:5,w:90,h:90}, screen:'capture', error:null }); }
   else if(action==='goReadingCapture'){ setState({ subject:'english', flowType:'reading', imageData:null, readingPassage:null, wordPopup:null, cropRect:{x:5,y:5,w:90,h:90}, screen:'capture', error:null }); }
@@ -1298,21 +1338,25 @@ document.addEventListener('click', (e) => {
 });
 
 document.addEventListener('change', (e) => {
-  if(e.target.id === 'fileInput'){
+  if(e.target.id === 'cameraInput' || e.target.id === 'galleryInput'){
     handleFile(e.target.files[0]);
   }
   if(e.target.id === 'modelSelect'){
     setState({ modelPref: e.target.value });
+    saveSettings();
   }
   if(e.target.id === 'apiKeyInput'){
     setState({ apiKey: e.target.value });
+    saveSettings();
   }
   if(e.target.id === 'proxyUrlInput'){
     setState({ proxyUrl: e.target.value });
+    saveSettings();
   }
 });
 
 /* ---------------- init ---------------- */
+loadSavedSettings();
 render();
 
 /* ---------------- PWA: register service worker ---------------- */
